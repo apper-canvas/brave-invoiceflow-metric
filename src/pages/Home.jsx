@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { Share2, ArrowRight } from 'lucide-react'
 import MainFeature from '../components/MainFeature'
 import ApperIcon from '../components/ApperIcon'
 
@@ -11,7 +12,6 @@ const Home = () => {
     totalRevenue: 89750,
     pendingPayments: 12,
     paidInvoices: 135,
-  Share2,
     recentActivities: [
       { id: 1, type: 'invoice_created', client: 'Acme Corp', amount: 2500, time: '2 hours ago' },
       { id: 2, type: 'payment_received', client: 'Tech Solutions', amount: 1800, time: '4 hours ago' },
@@ -73,6 +73,9 @@ const Home = () => {
               </Link>
               <Link to="/track-payments" className="text-surface-600 hover:text-primary transition-colors">
                 Track Payments
+              </Link>
+              <Link to="/send-share" className="text-surface-600 hover:text-primary transition-colors">
+                Send & Share
               </Link>
             </nav>
 
@@ -188,25 +191,6 @@ const Home = () => {
       {/* Quick Actions */}
       <section className="py-6">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-              >
-                <Link to="/send-share" className="group flex items-center justify-between p-6 bg-white rounded-2xl shadow-card hover:shadow-invoice transition-all duration-300 border border-surface-100">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                      <Share2 className="w-6 h-6 text-accent" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-surface-900 group-hover:text-accent transition-colors">Send & Share</h3>
-                      <p className="text-surface-600">Share invoices via email, links, and collaboration</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-surface-400 group-hover:text-accent group-hover:translate-x-1 transition-all" />
-                </Link>
-              </motion.div>
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
@@ -217,7 +201,7 @@ const Home = () => {
             <h3 className="text-xl font-bold text-surface-900 dark:text-white mb-4">
               Quick Actions
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <Link 
                 to="/#create-invoice"
                 className="flex flex-col items-center p-4 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors group"
@@ -246,6 +230,16 @@ const Home = () => {
                   <ApperIcon name="Repeat" className="w-6 h-6 text-accent" />
                 </div>
                 <span className="text-sm font-medium text-surface-900 dark:text-white">Recurring Setup</span>
+              </Link>
+              
+              <Link 
+                to="/send-share"
+                className="flex flex-col items-center p-4 rounded-xl bg-purple-100/50 hover:bg-purple-100 transition-colors group"
+              >
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                  <Share2 className="w-6 h-6 text-purple-600" />
+                </div>
+                <span className="text-sm font-medium text-surface-900 dark:text-white">Send & Share</span>
               </Link>
               
               <button className="flex flex-col items-center p-4 rounded-xl bg-surface-100 hover:bg-surface-200 dark:bg-surface-700 dark:hover:bg-surface-600 transition-colors group">
