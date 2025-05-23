@@ -311,9 +311,9 @@ export default function Invoices() {
 
   const addItem = () => {
     setCreateForm({
-      ...prev,
-      items: [...prev.items, { description: '', quantity: 1, rate: 0 }]
-    }))
+      ...createForm,
+      items: [...createForm.items, { description: '', quantity: 1, rate: 0 }]
+    })
   }
 
   const updateItem = (index, field, value) => {
