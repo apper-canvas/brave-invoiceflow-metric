@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { format } from 'date-fns'
-import { Link } from 'react-router-dom'
 import ApperIcon from './ApperIcon'
 
 const MainFeature = () => {
@@ -50,29 +49,6 @@ const MainFeature = () => {
 
   const addItem = () => {
     setInvoiceData(prev => ({
-          
-          {/* Quick Navigation */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-8 flex flex-wrap gap-4 justify-center"
-          >
-            <Link
-              to="/invoices"
-              className="btn-primary inline-flex items-center gap-2 hover:scale-105 transform transition-all duration-200"
-            >
-              <FileText className="w-5 h-5" />
-              Manage Invoices
-            </Link>
-            <Link
-              to="/settings"
-              className="btn-secondary inline-flex items-center gap-2 hover:scale-105 transform transition-all duration-200"
-            >
-              <Settings className="w-5 h-5" />
-              Settings
-            </Link>
-          </motion.div>
       ...prev,
       items: [...prev.items, { description: '', quantity: 1, price: 0 }]
     }))
@@ -151,27 +127,36 @@ const MainFeature = () => {
 
   return (
     <>
-    <div className="mb-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-surface-900 dark:text-white mb-2">
-            Invoice Management
-          </h2>
-          <p className="text-surface-600 dark:text-surface-400">
-            Create professional invoices with ease
-          </p>
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-surface-900 dark:text-white mb-2">
+              Invoice Management
+            </h2>
+            <p className="text-surface-600 dark:text-surface-400">
+              Create professional invoices with ease
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Link
+              to="/invoices"
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              <ApperIcon name="FileText" className="w-4 h-4" />
+              Manage Invoices
+            </Link>
+            <Link
+              to="/settings"
+              className="btn-secondary flex items-center"
+            >
+              <ApperIcon name="Settings" className="w-4 h-4 mr-2" />
+              Settings
+            </Link>
+          </div>
         </div>
-        <Link
-          to="/settings"
-          className="btn-secondary flex items-center"
-        >
-          <ApperIcon name="Settings" className="w-4 h-4 mr-2" />
-          Settings
-        </Link>
       </div>
-    </div>
-    
-    <div className="max-w-6xl mx-auto">
+      
+      <div className="max-w-6xl mx-auto">
       {!generatedInvoice ? (
         <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">
           {/* Step Navigation */}
@@ -666,7 +651,7 @@ const MainFeature = () => {
           </div>
         </motion.div>
       )}
-    </div>
+      </div>
     </>
   )
 }
