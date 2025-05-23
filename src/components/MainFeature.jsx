@@ -126,6 +126,7 @@ const MainFeature = () => {
   }
 
   return (
+    <>
     <div className="mb-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -642,6 +643,7 @@ const MainFeature = () => {
         </motion.div>
       )}
     </div>
+    </>
   )
 }
 
