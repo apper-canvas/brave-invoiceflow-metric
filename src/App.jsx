@@ -6,6 +6,7 @@ import Invoices from './pages/Invoices'
 import Clients from './pages/Clients'
 import NotFound from './pages/NotFound'
 import Settings from './pages/Settings'
+import TrackPayments from './pages/TrackPayments'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/invoices" element={<Invoices />} />
         <Route path="/clients" element={<Clients />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/track-payments" element={<TrackPayments />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       

@@ -145,6 +145,16 @@ const Home = () => {
             ].map((stat, index) => (
               <motion.div
                 key={stat.title}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Link to="/track-payments" className="group block">
+                <FeatureCard icon={DollarSign} title="Track Payments" description="Monitor and manage payment receipts" />
+              </Link>
+            </motion.div>
+
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}

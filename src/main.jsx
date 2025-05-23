@@ -12,7 +12,8 @@ const invoiceSlice = {
     invoices: [],
     clients: [],
     nextInvoiceNumber: 1001,
-    recurringInvoices: []
+    recurringInvoices: [],
+    payments: []
   },
   reducers: {
     addInvoice: (state, action) => {
@@ -57,6 +58,26 @@ const invoiceSlice = {
     },
     deleteRecurringInvoice: (state, action) => {
       state.recurringInvoices = state.recurringInvoices.filter(inv => inv.id !== action.payload)
+    },
+    addPayment: (state, action) => {
+      state.payments.push(action.payload)
+    },
+    updatePayment: (state, action) => {
+      const index = state.payments.findIndex(payment => payment.id === action.payload.id)
+      if (index !== -1) {
+        state.payments[index] = action.payload
+      }
+    },
+    deletePayment: (state, action) => {
+      state.payments = state.payments.filter(payment => payment.id !== action.payload)
+    },
+    updateInvoicePaymentStatus: (state, action) => {
+      const { invoiceId, amountPaid, totalAmount } = action.payload
+      const invoice = state.invoices.find(inv => inv.id === invoiceId)
+      if (invoice) {
+        invoice.amountPaid = amountPaid
+        invoice.status = amountPaid >= totalAmount ? 'paid' : amountPaid > 0 ? 'partial' : 'pending'
+      }
     }
   }
 }
