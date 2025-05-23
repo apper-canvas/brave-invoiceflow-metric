@@ -286,7 +286,7 @@ function Clients() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-surface-600 dark:text-surface-400">Total Clients</p>
-                <p className="text-2xl font-bold text-surface-900 dark:text-white">{sampleClients.length}</p>
+                <p className="text-2xl font-bold text-surface-900 dark:text-white">{clients.length}</p>
               </div>
               <div className="p-3 bg-primary/10 rounded-xl">
                 <ApperIcon name="Users" className="w-6 h-6 text-primary" />
@@ -297,8 +297,8 @@ function Clients() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-surface-600 dark:text-surface-400">Active Clients</p>
-                <p className="text-2xl font-bold text-green-600">{sampleClients.filter(c => c.status === 'active').length}</p>
                 <p className="text-2xl font-bold text-green-600">{clients.filter(c => c.status === 'active').length}</p>
+              </div>
               <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
                 <ApperIcon name="UserCheck" className="w-6 h-6 text-green-600" />
               </div>
