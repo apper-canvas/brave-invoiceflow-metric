@@ -20,7 +20,6 @@ const store = configureStore({
         ignoredActions: ['user/setUser'],
       },
     })
-  }
 })
 
 createRoot(document.getElementById('root')).render(
