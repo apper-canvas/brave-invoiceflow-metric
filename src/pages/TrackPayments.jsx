@@ -18,6 +18,7 @@ import {
   X,
   Check,
   Clock,
+  ArrowLeft,
   FileText
 } from 'lucide-react'
 import { format } from 'date-fns'
@@ -277,6 +278,9 @@ export default function TrackPayments() {
             <div className="flex items-center gap-4">
               <Link to="/" className="text-surface-600 hover:text-primary transition-colors">
                 <Home className="w-6 h-6" />
+              </Link>
+              <Link to="/" className="text-surface-600 hover:text-primary transition-colors">
+                <ArrowLeft className="w-6 h-6" />
               </Link>
               <div>
                 <h1 className="text-3xl font-bold text-surface-900 flex items-center gap-3">
