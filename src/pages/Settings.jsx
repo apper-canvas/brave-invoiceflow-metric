@@ -180,7 +180,7 @@ const Settings = () => {
                 <ApperIcon name="ArrowLeft" className="w-5 h-5 text-surface-600 dark:text-surface-400" />
               </Link>
               <h1 className="text-3xl font-bold text-surface-900 dark:text-white">
-                Recurring Invoices
+                Settings
               </h1>
             </div>
             <p className="text-surface-600 dark:text-surface-400">
