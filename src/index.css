@@ -58,6 +58,15 @@
 }
 
 /* Custom scrollbar for webkit browsers */
+
+/* Header styling to prevent shadow issues */
+.header-container {
+  @apply bg-white dark:bg-surface-800 z-50 relative;
+}
+
+.fixed-header {
+  @apply sticky top-0 z-50 border-b border-surface-200 dark:border-surface-700 bg-white/90 dark:bg-surface-800/90 backdrop-filter backdrop-blur-sm;
+}
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

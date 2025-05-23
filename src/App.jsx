@@ -145,7 +145,6 @@ function App() {
           pauseOnHover
           theme="light"
           className="mt-16"
-          toastClassName="shadow-invoice rounded-xl"
         />
       </div>
     </AuthContext.Provider>
