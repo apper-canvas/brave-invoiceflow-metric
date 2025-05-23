@@ -146,6 +146,13 @@ const MainFeature = () => {
               Manage Invoices
             </Link>
             <Link
+              to="/clients"
+              className="btn-primary inline-flex items-center gap-2"
+            >
+              <ApperIcon name="Users" className="w-4 h-4" />
+              Manage Clients
+            </Link>
+            <Link
               to="/settings"
               className="btn-secondary flex items-center"
             >

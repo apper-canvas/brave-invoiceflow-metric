@@ -37,6 +37,18 @@ const invoiceSlice = {
     addClient: (state, action) => {
       state.clients.push(action.payload)
     },
+    updateClient: (state, action) => {
+      const index = state.clients.findIndex(client => client.id === action.payload.id)
+      if (index !== -1) {
+        state.clients[index] = action.payload
+      }
+    },
+    deleteClient: (state, action) => {
+      state.clients = state.clients.filter(client => client.id !== action.payload)
+    },
+    addClient: (state, action) => {
+      state.clients.push(action.payload)
+    },
     addRecurringInvoice: (state, action) => {
       state.recurringInvoices.push(action.payload)
     },

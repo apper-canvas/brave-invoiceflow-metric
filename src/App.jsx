@@ -3,6 +3,7 @@ import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Home from './pages/Home'
 import Invoices from './pages/Invoices'
+import Clients from './pages/Clients'
 import NotFound from './pages/NotFound'
 import Settings from './pages/Settings'
 
@@ -12,6 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/invoices" element={<Invoices />} />
+        <Route path="/clients" element={<Clients />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
