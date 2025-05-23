@@ -67,9 +67,9 @@ const Home = () => {
               <Link to="/settings" className="text-surface-600 hover:text-primary transition-colors">
                 Settings
               </Link>
-              <a href="#clients" className="text-surface-600 hover:text-primary transition-colors">
+              <Link to="/clients" className="text-surface-600 hover:text-primary transition-colors">
                 Clients
-              </a>
+              </Link>
             </nav>
 
             {/* Dark Mode Toggle */}

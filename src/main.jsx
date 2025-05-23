@@ -46,9 +46,6 @@ const invoiceSlice = {
     deleteClient: (state, action) => {
       state.clients = state.clients.filter(client => client.id !== action.payload)
     },
-    addClient: (state, action) => {
-      state.clients.push(action.payload)
-    },
     addRecurringInvoice: (state, action) => {
       state.recurringInvoices.push(action.payload)
     },
