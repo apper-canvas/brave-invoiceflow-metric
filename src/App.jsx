@@ -7,6 +7,7 @@ import Clients from './pages/Clients'
 import NotFound from './pages/NotFound'
 import Settings from './pages/Settings'
 import TrackPayments from './pages/TrackPayments'
+import SendShare from './pages/SendShare'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/clients" element={<Clients />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/track-payments" element={<TrackPayments />} />
+        <Route path="/send-share" element={<SendShare />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       
