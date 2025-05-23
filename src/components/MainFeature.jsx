@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { format } from 'date-fns'
 import { Link } from 'react-router-dom'
@@ -49,6 +50,29 @@ const MainFeature = () => {
 
   const addItem = () => {
     setInvoiceData(prev => ({
+          
+          {/* Quick Navigation */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mt-8 flex flex-wrap gap-4 justify-center"
+          >
+            <Link
+              to="/invoices"
+              className="btn-primary inline-flex items-center gap-2 hover:scale-105 transform transition-all duration-200"
+            >
+              <FileText className="w-5 h-5" />
+              Manage Invoices
+            </Link>
+            <Link
+              to="/settings"
+              className="btn-secondary inline-flex items-center gap-2 hover:scale-105 transform transition-all duration-200"
+            >
+              <Settings className="w-5 h-5" />
+              Settings
+            </Link>
+          </motion.div>
       ...prev,
       items: [...prev.items, { description: '', quantity: 1, price: 0 }]
     }))

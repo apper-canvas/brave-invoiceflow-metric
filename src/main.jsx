@@ -25,6 +25,15 @@ const invoiceSlice = {
         state.invoices[index] = action.payload
       }
     },
+    deleteInvoice: (state, action) => {
+      state.invoices = state.invoices.filter(inv => inv.id !== action.payload)
+    },
+    updateInvoiceStatus: (state, action) => {
+      const index = state.invoices.findIndex(inv => inv.id === action.payload.id)
+      if (index !== -1) {
+        state.invoices[index].status = action.payload.status
+      }
+    },
     addClient: (state, action) => {
       state.clients.push(action.payload)
     },
