@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
@@ -19,10 +19,14 @@ import {
   Check
 } from 'lucide-react'
 import { format } from 'date-fns'
+import InvoiceService from '../services/InvoiceService'
+import InvoiceItemService from '../services/InvoiceItemService'
+import { setInvoices, addInvoice, updateInvoice, deleteInvoice, setLoading } from '../store/invoiceSlice'
 
 export default function Invoices() {
   const dispatch = useDispatch()
   const { invoices, clients, nextInvoiceNumber } = useSelector(state => state.invoices)
+  const { loading } = useSelector(state => state.invoices)
   
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -31,6 +35,7 @@ export default function Invoices() {
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedInvoice, setSelectedInvoice] = useState(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [invoiceToDelete, setInvoiceToDelete] = useState(null)
 
   // Create invoice form state
@@ -50,41 +55,111 @@ export default function Invoices() {
     description: '',
     status: 'pending'
   })
+  
+  // Fetch invoices when component mounts
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        setIsLoading(true);
+        dispatch(setLoading({ entity: 'invoices', status: true }));
+        
+        const invoicesData = await InvoiceService.getInvoices();
+        
+        // Transform data to match the expected format in the UI
+        const formattedInvoices = invoicesData.map(invoice => ({
+          ...invoice,
+          id: invoice.Id,
+          invoiceNumber: invoice.invoiceNumber || nextInvoiceNumber,
+          clientName: invoice.clientName,
+          amount: invoice.amount || 0,
+          dueDate: invoice.dueDate,
+          description: invoice.description || '',
+          status: invoice.status || 'pending',
+          amountPaid: invoice.amountPaid || 0,
+          createdAt: invoice.CreatedOn
+        }));
+        
+        dispatch(setInvoices(formattedInvoices));
+      } catch (error) {
+        console.error('Failed to fetch invoices:', error);
+        toast.error('Failed to load invoices');
+      } finally {
+        setIsLoading(false);
+        dispatch(setLoading({ entity: 'invoices', status: false }));
+      }
+    };
+    
+    fetchInvoices();
+  }, [dispatch, nextInvoiceNumber]);
 
   // Filter invoices based on search and status
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = invoice.invoiceNumber.toString().includes(searchTerm) ||
-                         invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+    const matchesSearch = 
+      (invoice.invoiceNumber?.toString() || '').includes(searchTerm) ||
+      (invoice.clientName || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const handleCreateInvoice = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     
-    if (!createForm.clientName || !createForm.amount || !createForm.dueDate) {
-      toast.error('Please fill in all required fields')
-      return
-    }
-
-    const newInvoice = {
-      id: Date.now(),
-      invoiceNumber: nextInvoiceNumber,
-      clientName: createForm.clientName,
-      amount: parseFloat(createForm.amount),
-      dueDate: createForm.dueDate,
-      description: createForm.description,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-      items: createForm.items.filter(item => item.description)
-    }
-
-    dispatch({
-      type: 'invoices/addInvoice',
-      payload: newInvoice
-    })
-
-    // Add client if new
+    const createNewInvoice = async () => {
+      if (!createForm.clientName || !createForm.dueDate) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        
+        // Calculate the total amount from items
+        const total = calculateTotal();
+        
+        // Create invoice data
+        const invoiceData = {
+          Name: `Invoice for ${createForm.clientName}`,
+          invoiceNumber: nextInvoiceNumber,
+          clientName: createForm.clientName,
+          amount: parseFloat(total),
+          dueDate: createForm.dueDate,
+          description: createForm.description,
+          status: 'pending',
+          amountPaid: 0
+        };
+        
+        // Create the invoice
+        const createdInvoice = await InvoiceService.createInvoice(invoiceData);
+        
+        // Create invoice items
+        const validItems = createForm.items.filter(item => item.description);
+        if (validItems.length > 0) {
+          const itemsToCreate = validItems.map(item => ({
+            Name: item.description,
+            description: item.description,
+            quantity: item.quantity,
+            rate: item.rate,
+            invoice: createdInvoice.Id
+          }));
+          
+          await InvoiceItemService.createInvoiceItems(itemsToCreate);
+        }
+        
+        // Update Redux state
+        dispatch(addInvoice({
+          ...createdInvoice,
+          id: createdInvoice.Id,
+          invoiceNumber: createdInvoice.invoiceNumber,
+          clientName: createdInvoice.clientName,
+          amount: createdInvoice.amount,
+          dueDate: createdInvoice.dueDate,
+          description: createdInvoice.description,
+          status: createdInvoice.status,
+          amountPaid: createdInvoice.amountPaid || 0,
+          createdAt: createdInvoice.CreatedOn
+        }));
+        
+        // Add client if new
     if (!clients.find(client => client.name === createForm.clientName)) {
       dispatch({
         type: 'invoices/addClient',
@@ -96,87 +171,146 @@ export default function Invoices() {
         }
       })
     }
-
-    setCreateForm({
-      clientName: '',
-      amount: '',
-      dueDate: '',
-      description: '',
-      items: [{ description: '', quantity: 1, rate: 0 }]
-    })
-    setShowCreateModal(false)
-    toast.success('Invoice created successfully!')
-  }
+        
+        setCreateForm({
+          clientName: '',
+          amount: '',
+          dueDate: '',
+          description: '',
+          items: [{ description: '', quantity: 1, rate: 0 }]
+        });
+        
+        setShowCreateModal(false);
+        toast.success('Invoice created successfully!');
+      } catch (error) {
+        console.error('Failed to create invoice:', error);
+        toast.error('Failed to create invoice');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    createNewInvoice();
+  };
 
   const handleEditInvoice = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     
-    if (!editForm.clientName || !editForm.amount || !editForm.dueDate) {
-      toast.error('Please fill in all required fields')
-      return
-    }
-
-    const updatedInvoice = {
-      ...selectedInvoice,
-      clientName: editForm.clientName,
-      amount: parseFloat(editForm.amount),
-      dueDate: editForm.dueDate,
-      description: editForm.description,
-      status: editForm.status
-    }
-
-    dispatch({
-      type: 'invoices/updateInvoice',
-      payload: updatedInvoice
-    })
-
-    setShowEditModal(false)
-    setSelectedInvoice(null)
-    toast.success('Invoice updated successfully!')
-  }
+    const updateExistingInvoice = async () => {
+      if (!editForm.clientName || !editForm.amount || !editForm.dueDate) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        
+        const invoiceData = {
+          Id: selectedInvoice.Id,
+          Name: `Invoice for ${editForm.clientName}`,
+          clientName: editForm.clientName,
+          amount: parseFloat(editForm.amount),
+          dueDate: editForm.dueDate,
+          description: editForm.description,
+          status: editForm.status
+        };
+        
+        const updatedInvoice = await InvoiceService.updateInvoice(invoiceData);
+        
+        dispatch(updateInvoice({
+          ...updatedInvoice,
+          id: updatedInvoice.Id
+        }));
+        
+        setShowEditModal(false);
+        setSelectedInvoice(null);
+        toast.success('Invoice updated successfully!');
+      } catch (error) {
+        console.error('Failed to update invoice:', error);
+        toast.error('Failed to update invoice');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    updateExistingInvoice();
+  };
 
   const handleDeleteInvoice = () => {
-    dispatch({
-      type: 'invoices/deleteInvoice',
-      payload: invoiceToDelete.id
-    })
-    setShowDeleteConfirm(false)
-    setInvoiceToDelete(null)
-    toast.success('Invoice deleted successfully!')
-  }
+    const deleteExistingInvoice = async () => {
+      try {
+        setIsLoading(true);
+        
+        await InvoiceService.deleteInvoice(invoiceToDelete.Id);
+        
+        dispatch(deleteInvoice(invoiceToDelete.Id));
+        setShowDeleteConfirm(false);
+        setInvoiceToDelete(null);
+        toast.success('Invoice deleted successfully!');
+      } catch (error) {
+        console.error('Failed to delete invoice:', error);
+        toast.error('Failed to delete invoice');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    deleteExistingInvoice();
+  };
 
   const handleStatusChange = (invoice, newStatus) => {
-    dispatch({
-      type: 'invoices/updateInvoiceStatus',
-      payload: { id: invoice.id, status: newStatus }
-    })
-    toast.success(`Invoice marked as ${newStatus}`)
-  }
-
+    const updateInvoiceStatus = async () => {
+      try {
+        setIsLoading(true);
+        
+        const invoiceData = {
+          Id: invoice.Id,
+          status: newStatus
+        };
+        
+        await InvoiceService.updateInvoice(invoiceData);
+        
+        dispatch({
+          type: 'invoices/updateInvoiceStatus',
+          payload: { id: invoice.Id, status: newStatus }
+        });
+        
+        toast.success(`Invoice marked as ${newStatus}`);
+      } catch (error) {
+        console.error('Failed to update invoice status:', error);
+        toast.error('Failed to update invoice status');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    updateInvoiceStatus();
+  };
+  
   const openViewModal = (invoice) => {
-    setSelectedInvoice(invoice)
-    setShowViewModal(true)
-  }
+    setSelectedInvoice(invoice);
+    setShowViewModal(true);
+  };
 
   const openEditModal = (invoice) => {
-    setSelectedInvoice(invoice)
+    setSelectedInvoice(invoice);
     setEditForm({
       clientName: invoice.clientName,
       amount: invoice.amount.toString(),
       dueDate: invoice.dueDate,
       description: invoice.description,
       status: invoice.status
-    })
-    setShowEditModal(true)
-  }
+    });
+    setShowEditModal(true);
+  };
 
   const openDeleteConfirm = (invoice) => {
-    setInvoiceToDelete(invoice)
-    setShowDeleteConfirm(true)
-  }
+    setInvoiceToDelete(invoice);
+    setShowDeleteConfirm(true);
+  };
 
   const addItem = () => {
-    setCreateForm(prev => ({
+    setCreateForm({
       ...prev,
       items: [...prev.items, { description: '', quantity: 1, rate: 0 }]
     }))
@@ -274,8 +408,19 @@ export default function Invoices() {
 
         {/* Invoices Table */}
         <div className="card-modern overflow-hidden">
-          {filteredInvoices.length === 0 ? (
+          {isLoading ? (
             <div className="text-center py-12">
+              <div className="flex justify-center mb-4">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <h3 className="text-lg font-medium text-surface-900 mb-2">Loading invoices...</h3>
+              <p className="text-surface-600">
+                Please wait while we fetch your invoice data
+              </p>
+            </div>
+          ) : filteredInvoices.length === 0 ? (
+            <div className="text-center py-12">
+              
               <FileText className="w-16 h-16 text-surface-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-surface-900 mb-2">No invoices found</h3>
               <p className="text-surface-600 mb-6">
@@ -325,7 +470,7 @@ export default function Invoices() {
                         ${invoice.amount.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 text-sm text-surface-700">
-                        {format(new Date(invoice.dueDate), 'MMM dd, yyyy')}
+                        {invoice.dueDate ? format(new Date(invoice.dueDate), 'MMM dd, yyyy') : 'N/A'}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(invoice.status)}`}>

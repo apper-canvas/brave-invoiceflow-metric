@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useSelector, useDispatch } from 'react-redux'
 import { format } from 'date-fns'
 import ApperIcon from '../components/ApperIcon'
+import ClientService from '../services/ClientService'
+import { setClients, addClient, updateClient, deleteClient, setLoading } from '../store/invoiceSlice'
 
-const Clients = () => {
+function Clients() {
   const dispatch = useDispatch()
   const { clients } = useSelector(state => state.invoices)
   const [searchTerm, setSearchTerm] = useState('')
@@ -16,6 +18,7 @@ const Clients = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState(null)
   
   const [newClient, setNewClient] = useState({
@@ -25,99 +28,73 @@ const Clients = () => {
     company: '',
     address: '',
     notes: ''
-  })
-
-  // Generate sample clients if none exist
-  const sampleClients = useMemo(() => {
-    if (clients.length > 0) return clients
-    
-    return [
-      {
-        id: 1,
-        name: 'John Anderson',
-        email: 'john.anderson@techcorp.com',
-        phone: '+1 (555) 123-4567',
-        company: 'TechCorp Solutions',
-        address: '123 Business Ave\nSuite 400\nNew York, NY 10001',
-        notes: 'Prefers email communication. Monthly retainer client.',
-        createdAt: '2024-01-15',
-        totalInvoices: 12,
-        totalAmount: 24500.00,
-        status: 'active'
-      },
-      {
-        id: 2,
-        name: 'Sarah Mitchell',
-        email: 'sarah@creativestudio.design',
-        phone: '+1 (555) 987-6543',
-        company: 'Creative Studio Design',
-        address: '456 Design Street\nFloor 2\nLos Angeles, CA 90210',
-        notes: 'Graphic design agency. Net 30 payment terms.',
-        createdAt: '2024-02-03',
-        totalInvoices: 8,
-        totalAmount: 15750.00,
-        status: 'active'
-      },
-      {
-        id: 3,
-        name: 'Michael Chen',
-        email: 'mchen@globaltech.biz',
-        phone: '+1 (555) 456-7890',
-        company: 'Global Tech Industries',
-        address: '789 Innovation Drive\nTech Park\nSan Francisco, CA 94105',
-        notes: 'Fortune 500 client. Requires purchase orders.',
-        createdAt: '2024-01-28',
-        totalInvoices: 15,
-        totalAmount: 45200.00,
-        status: 'active'
-      },
-      {
-        id: 4,
-        name: 'Emma Rodriguez',
-        email: 'emma@localcafe.com',
-        phone: '+1 (555) 321-0987',
-        company: 'Local Café & Bistro',
-        address: '321 Main Street\nDowntown\nAustin, TX 78701',
-        notes: 'Small business client. Weekly invoicing.',
-        createdAt: '2024-02-10',
-        totalInvoices: 6,
-        totalAmount: 3250.00,
-        status: 'inactive'
+  });
+  
+  // Fetch clients when component mounts
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        setIsLoading(true);
+        dispatch(setLoading({ entity: 'clients', status: true }));
+        
+        const clientsData = await ClientService.getClients();
+        
+        // Transform data to match the expected format in the UI
+        const formattedClients = clientsData.map(client => ({
+          ...client,
+          name: client.Name,
+          email: client.email || '',
+          createdAt: client.CreatedOn,
+          // These would come from invoice relationships in a real implementation
+          // For now, we'll set them to default values
+          totalInvoices: 0,
+          totalAmount: 0
+        }));
+        
+        dispatch(setClients(formattedClients));
+      } catch (error) {
+        console.error('Failed to fetch clients:', error);
+        toast.error('Failed to load clients');
+      } finally {
+        setIsLoading(false);
+        dispatch(setLoading({ entity: 'clients', status: false }));
       }
-    ]
-  }, [clients])
+    };
+    
+    fetchClients();
+  }, [dispatch]);
 
   // Filter and sort clients
   const filteredClients = useMemo(() => {
-    let filtered = sampleClients.filter(client =>
-      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.phone.includes(searchTerm)
+    let filtered = clients.filter(client =>
+      (client.name || client.Name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (client.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (client.company || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (client.phone || '').includes(searchTerm)
     )
 
     filtered.sort((a, b) => {
-      let aValue = a[sortBy]
-      let bValue = b[sortBy]
+      let aValue = a[sortBy] || '';
+      let bValue = b[sortBy] || '';
       
       if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase()
-        bValue = bValue.toLowerCase()
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
       }
       
       if (sortOrder === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     })
 
     return filtered
-  }, [sampleClients, searchTerm, sortBy, sortOrder])
+  }, [clients, searchTerm, sortBy, sortOrder])
 
   const handleSort = (field) => {
     if (sortBy === field) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
       setSortBy(field)
       setSortOrder('asc')
@@ -125,57 +102,114 @@ const Clients = () => {
   }
 
   const handleAddClient = () => {
-    if (!newClient.name.trim() || !newClient.email.trim()) {
-      toast.error('Name and email are required')
-      return
+    const addNewClient = async () => {
+      if (!newClient.name.trim() || !newClient.email.trim()) {
+        toast.error('Name and email are required');
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        
+        const clientData = {
+          Name: newClient.name,
+          email: newClient.email,
+          phone: newClient.phone,
+          company: newClient.company,
+          address: newClient.address,
+          notes: newClient.notes,
+          status: 'active'
+        };
+        
+        const createdClient = await ClientService.createClient(clientData);
+        dispatch(addClient({...createdClient, name: createdClient.Name, totalInvoices: 0, totalAmount: 0}));
+        
+        setNewClient({ name: '', email: '', phone: '', company: '', address: '', notes: '' });
+        setIsAddModalOpen(false);
+        toast.success('Client added successfully!');
+      } catch (error) {
+        console.error('Failed to add client:', error);
+        toast.error('Failed to add client');
+      } finally {
+        setIsLoading(false);
+      }
     }
-
-    const client = {
-      id: Date.now(),
-      ...newClient,
-      createdAt: format(new Date(), 'yyyy-MM-dd'),
-      totalInvoices: 0,
-      totalAmount: 0,
-      status: 'active'
-    }
-
-    dispatch({ type: 'invoices/addClient', payload: client })
-    setNewClient({ name: '', email: '', phone: '', company: '', address: '', notes: '' })
-    setIsAddModalOpen(false)
-    toast.success('Client added successfully!')
+    
+    addNewClient();
   }
-
+  
   const handleEditClient = () => {
-    if (!selectedClient.name.trim() || !selectedClient.email.trim()) {
-      toast.error('Name and email are required')
-      return
+    const updateExistingClient = async () => {
+      if (!selectedClient.name && !selectedClient.Name) {
+        toast.error('Name is required');
+        return;
+      }
+      
+      try {
+        setIsLoading(true);
+        
+        const clientData = {
+          Id: selectedClient.Id,
+          Name: selectedClient.name || selectedClient.Name,
+          email: selectedClient.email,
+          phone: selectedClient.phone,
+          company: selectedClient.company,
+          address: selectedClient.address,
+          notes: selectedClient.notes,
+          status: selectedClient.status || 'active'
+        };
+        
+        const updatedClient = await ClientService.updateClient(clientData);
+        dispatch(updateClient({...updatedClient, name: updatedClient.Name}));
+        
+        setIsEditModalOpen(false);
+        setSelectedClient(null);
+        toast.success('Client updated successfully!');
+      } catch (error) {
+        console.error('Failed to update client:', error);
+        toast.error('Failed to update client');
+      } finally {
+        setIsLoading(false);
+      }
     }
-
-    dispatch({ type: 'invoices/updateClient', payload: selectedClient })
-    setIsEditModalOpen(false)
-    setSelectedClient(null)
-    toast.success('Client updated successfully!')
+    
+    updateExistingClient();
   }
-
+  
   const handleDeleteClient = (clientId) => {
-    dispatch({ type: 'invoices/deleteClient', payload: clientId })
-    setDeleteConfirmId(null)
-    toast.success('Client deleted successfully!')
+    const deleteExistingClient = async () => {
+      try {
+        setIsLoading(true);
+        
+        await ClientService.deleteClient(clientId);
+        dispatch(deleteClient(clientId));
+        
+        setDeleteConfirmId(null);
+        toast.success('Client deleted successfully!');
+      } catch (error) {
+        console.error('Failed to delete client:', error);
+        toast.error('Failed to delete client');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    deleteExistingClient();
   }
 
   const handleViewClient = (client) => {
-    setSelectedClient(client)
-    setIsViewModalOpen(true)
+    setSelectedClient(client);
+    setIsViewModalOpen(true);
   }
 
   const handleEditClientModal = (client) => {
-    setSelectedClient({ ...client })
-    setIsEditModalOpen(true)
+    setSelectedClient({ ...client });
+    setIsEditModalOpen(true);
   }
 
   const getSortIcon = (field) => {
-    if (sortBy !== field) return 'ArrowUpDown'
-    return sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'
+    if (sortBy !== field) return 'ArrowUpDown';
+    return sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown';
   }
 
   return (
@@ -264,7 +298,7 @@ const Clients = () => {
               <div>
                 <p className="text-sm text-surface-600 dark:text-surface-400">Active Clients</p>
                 <p className="text-2xl font-bold text-green-600">{sampleClients.filter(c => c.status === 'active').length}</p>
-              </div>
+                <p className="text-2xl font-bold text-green-600">{clients.filter(c => c.status === 'active').length}</p>
               <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
                 <ApperIcon name="UserCheck" className="w-6 h-6 text-green-600" />
               </div>
@@ -275,7 +309,7 @@ const Clients = () => {
               <div>
                 <p className="text-sm text-surface-600 dark:text-surface-400">Total Revenue</p>
                 <p className="text-2xl font-bold text-primary">
-                  ${sampleClients.reduce((sum, client) => sum + client.totalAmount, 0).toLocaleString()}
+                  ${clients.reduce((sum, client) => sum + (client.totalAmount || 0), 0).toLocaleString()}
                 </p>
               </div>
               <div className="p-3 bg-primary/10 rounded-xl">
@@ -288,8 +322,8 @@ const Clients = () => {
               <div>
                 <p className="text-sm text-surface-600 dark:text-surface-400">Avg. Invoice Value</p>
                 <p className="text-2xl font-bold text-secondary">
-                  ${Math.round(sampleClients.reduce((sum, client) => sum + client.totalAmount, 0) / 
-                    sampleClients.reduce((sum, client) => sum + client.totalInvoices, 0) || 0)}
+                  ${Math.round(clients.reduce((sum, client) => sum + (client.totalAmount || 0), 0) / 
+                    clients.reduce((sum, client) => sum + (client.totalInvoices || 0), 0) || 0)}
                 </p>
               </div>
               <div className="p-3 bg-secondary/10 rounded-xl">
@@ -300,7 +334,17 @@ const Clients = () => {
         </div>
 
         {/* Clients Table */}
-        <div className="card-modern overflow-hidden">
+        {isLoading ? (
+          <div className="card-modern p-8">
+            <div className="flex flex-col items-center justify-center">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <p className="mt-4 text-surface-600 dark:text-surface-400">
+                Loading clients...
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="card-modern overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-surface-50 dark:bg-surface-700">
@@ -363,11 +407,11 @@ const Clients = () => {
                     <td className="px-6 py-4">
                       <div>
                         <div className="font-medium text-surface-900 dark:text-white">
-                          {client.name}
+                          {client.name || client.Name}
                         </div>
-                        <div className="text-sm text-surface-600 dark:text-surface-400">
-                          {client.email}
-                        </div>
+                        {client.email && (
+                          <div className="text-sm text-surface-600 dark:text-surface-400">{client.email}</div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -379,7 +423,7 @@ const Clients = () => {
                       <div className="text-sm">
                         <div className="text-surface-900 dark:text-white">{client.phone}</div>
                         <div className="text-surface-600 dark:text-surface-400">
-                          Added {format(new Date(client.createdAt), 'MMM dd, yyyy')}
+                          Added {client.createdAt ? format(new Date(client.createdAt), 'MMM dd, yyyy') : 'N/A'}
                         </div>
                       </div>
                     </td>
@@ -390,7 +434,7 @@ const Clients = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-surface-900 dark:text-white font-medium">
-                        ${client.totalAmount.toLocaleString()}
+                        ${(client.totalAmount || 0).toLocaleString()}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -454,7 +498,8 @@ const Clients = () => {
             </div>
           )}
         </div>
-      </div>
+        )}
+     </div>
 
       {/* Add Client Modal */}
       <AnimatePresence>
@@ -620,7 +665,7 @@ const Clients = () => {
                     <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
                       Name *
                     </label>
-                    <input
+                <input
                       type="text"
                       value={selectedClient.name}
                       onChange={(e) => setSelectedClient(prev => ({ ...prev, name: e.target.value }))}
