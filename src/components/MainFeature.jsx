@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
 import { format } from 'date-fns'
+import { Link } from 'react-router-dom'
 import ApperIcon from './ApperIcon'
 
 const MainFeature = () => {
@@ -125,6 +126,26 @@ const MainFeature = () => {
   }
 
   return (
+    <div className="mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-surface-900 dark:text-white mb-2">
+            Invoice Management
+          </h2>
+          <p className="text-surface-600 dark:text-surface-400">
+            Create professional invoices with ease
+          </p>
+        </div>
+        <Link
+          to="/settings"
+          className="btn-secondary flex items-center"
+        >
+          <ApperIcon name="Settings" className="w-4 h-4 mr-2" />
+          Settings
+        </Link>
+      </div>
+    </div>
+    
     <div className="max-w-6xl mx-auto">
       {!generatedInvoice ? (
         <div className="grid lg:grid-cols-3 gap-8 lg:gap-12">

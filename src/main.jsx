@@ -11,7 +11,8 @@ const invoiceSlice = {
   initialState: {
     invoices: [],
     clients: [],
-    nextInvoiceNumber: 1001
+    nextInvoiceNumber: 1001,
+    recurringInvoices: []
   },
   reducers: {
     addInvoice: (state, action) => {
@@ -26,6 +27,18 @@ const invoiceSlice = {
     },
     addClient: (state, action) => {
       state.clients.push(action.payload)
+    },
+    addRecurringInvoice: (state, action) => {
+      state.recurringInvoices.push(action.payload)
+    },
+    updateRecurringInvoice: (state, action) => {
+      const index = state.recurringInvoices.findIndex(inv => inv.id === action.payload.id)
+      if (index !== -1) {
+        state.recurringInvoices[index] = action.payload
+      }
+    },
+    deleteRecurringInvoice: (state, action) => {
+      state.recurringInvoices = state.recurringInvoices.filter(inv => inv.id !== action.payload)
     }
   }
 }
