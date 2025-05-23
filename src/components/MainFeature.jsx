@@ -36,13 +36,6 @@ const MainFeature = () => {
       ...prev,
       client: { ...prev.client, [field]: value }
     }))
-              <Link 
-                to="/settings" 
-                className="text-surface-600 dark:text-surface-300 hover:text-primary dark:hover:text-primary-light transition-colors duration-200 font-medium"
-              >
-                Settings
-              </Link>
-              
   }
 
   const updateItem = (index, field, value) => {
