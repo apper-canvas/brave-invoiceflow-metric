@@ -11,7 +11,6 @@ import {
   Eye,
   Edit,
   Trash2,
-  Home,
   Calendar,
   DollarSign,
   User,
@@ -221,9 +220,6 @@ export default function Invoices() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link to="/" className="text-surface-600 hover:text-primary transition-colors">
-                <Home className="w-6 h-6" />
-              </Link>
               <Link to="/" className="text-surface-600 hover:text-primary transition-colors">
                 <ArrowLeft className="w-6 h-6" />
               </Link>
